@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini‑C IDE & Compiler Dashboard</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- Premium Floating Header -->
+      <div class="top">
+        <div class="title">
+          <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+            Mini‑C Compiler Dashboard
+          </h1>
+          <p>An interactive, C-inspired environment featuring scope analysis, automatic bug resolution, IR generation, and optimizations.</p>
+        </div>
+        <div id="status" class="badge ok">Ready</div>
+      </div>
+
+      <div class="grid">
+        <!-- Editor Section -->
+        <div class="card">
+          <div class="cardHeader">
+            <div class="h">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+              Mini‑C Workspace Editor
+            </div>
+          </div>
+          
+          <!-- Segmented Button Bars -->
+          <div class="toolbar-wrap">
+            <div class="action-row">
+              <div class="presets">
+                <button id="loadEnhanced" class="ghost" title="Load an advanced test case covering standard arithmetic and control loop behaviors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                  Enhanced Demo
+                </button>
+                <button id="loadOk" class="ghost">Standard Demo</button>
+                <button id="loadRedeclare" class="ghost">Redeclare Error</button>
+                <button id="loadUseBefore" class="ghost">Use‑Before‑Decl Error</button>
+              </div>
+              <div class="actions">
+                <button id="clearBtn" title="Clear compiler editor and terminal outputs">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  Clear
+                </button>
+                <button id="lexBtn" title="Tokenize code using Flex lexer rules">1. Lexer</button>
+                <button id="parseBtn" title="Parse structure into Abstract Syntax Tree using Bison rules">2. Parser</button>
+                <button id="irBtn" title="Generate Intermediate Code (Three-Address Code) representing the compiled AST">3. Generate IR (TAC)</button>
+                <button id="optBtn" title="Perform dead code elimination and constant folding optimizations on intermediate representation">4. Optimize IR</button>
+                <button id="semBtn" title="Perform type safety analysis and execute statements in interpreter">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                  5. Run Program
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- macOS Editor Window Decorator -->
+          <div class="terminal-window">
+            <div class="mac-header">
+              <span class="mac-dot close"></span>
+              <span class="mac-dot min"></span>
+              <span class="mac-dot max"></span>
+              <span class="mac-title">main.mc — Mini-C Sandbox</span>
+            </div>
+            <div class="editor-container">
+              <textarea id="source" spellcheck="false">// Test all enhanced features of Mini-C
+int a = 10;
+float b = 3.14;
+bool c = true;
+string d = "Hello, Mini-C World!\n";
+
+print d;
+
+// Arithmetic & Coercion
+float sum = a + b; 
+print "Sum (int + float) =";
+print sum;
+
+// Relational & Logical Operators
+bool check = a > 5 && b <= 4.0;
+print "a > 5 && b <= 4.0:";
+print check;
+
+// Control Flow
+if (a == 10) {
+  print "Inside IF: a is 10";
+} else {
+  print "Inside ELSE (should not happen)";
+}
+
+// While Loops
+print "Counting down:";
+int count = 3;
+while (count > 0) {
+  print count;
+  count = count - 1;
+}
+
+print "Done!";
+</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline and Terminals Section -->
+        <div class="card split">
+          <div>
+            <div class="cardHeader">
+              <div class="h">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+                Compiler Stage Analyzer
+              </div>
+            </div>
+
+            <!-- Flowchart Pipeline visualizer (5 Phases) -->
+            <div class="pipeline-box">
+              <div class="pipeline-flow">
+                <!-- 1. Lexer -->
+                <div id="step-lex" class="pipeline-step">
+                  <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/></svg>
+                  </div>
+                  <div class="label">1. Lexer</div>
+                  <div class="desc">Tokenization</div>
+                </div>
+                
+                <div id="conn-1" class="pipeline-connector"></div>
+                
+                <!-- 2. Parser -->
+                <div id="step-parse" class="pipeline-step">
+                  <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v8"/><path d="m16 12-4-4-4 4"/><path d="M12 12v8"/><rect width="8" height="4" x="8" y="2"/><rect width="8" height="4" x="8" y="18"/></svg>
+                  </div>
+                  <div class="label">2. Parser</div>
+                  <div class="desc">Bison (AST)</div>
+                </div>
+                
+                <div id="conn-2" class="pipeline-connector"></div>
+
+                <!-- 3. IR Generator -->
+                <div id="step-ir" class="pipeline-step">
+                  <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 22V4c0-.5.2-1 .6-1.4C5 2.2 5.5 2 6 2h8l6 6v12c0 .5-.2 1-.6 1.4-.4.4-.9.6-1.4.6H6c-.5 0-1-.2-1.4-.6-.4-.4-.6-.9-.6-1.4z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                  </div>
+                  <div class="label">3. IR Gen</div>
+                  <div class="desc">TAC Generation</div>
+                </div>
+                
+                <div id="conn-3" class="pipeline-connector"></div>
+
+                <!-- 4. Code Optimizer -->
+                <div id="step-opt" class="pipeline-step">
+                  <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><circle cx="12" cy="12" r="3"/></svg>
+                  </div>
+                  <div class="label">4. Optimizer</div>
+                  <div class="desc">Folding & DCE</div>
+                </div>
+                
+                <div id="conn-4" class="pipeline-connector"></div>
+                
+                <!-- 5. Interpreter -->
+                <div id="step-run" class="pipeline-step">
+                  <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                  </div>
+                  <div class="label">5. Interpreter</div>
+                  <div class="desc">Execution</div>
+                </div>
+              </div>
+              
+              <div class="hint">
+                Interactive flowchart: Compile actions show processing sequence from Flex tokenization down to direct Tree-Walking Execution.
+              </div>
+            </div>
+
+            <!-- Diagnostics Block -->
+            <div class="errHelp">
+              <div class="errTop">
+                <div class="h2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--amber);"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Diagnostic Assistant
+                </div>
+                <div class="actions">
+                  <button id="fixBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    Apply Auto‑Fix
+                  </button>
+                </div>
+              </div>
+              <div id="errHelpText" class="errText">Paste or load a Mini‑C script, then run semantics or tokens compilation.</div>
+            </div>
+          </div>
+
+          <!-- Output Terminal with Tabbed Panels -->
+          <div class="split2">
+            <div class="terminal-window">
+              <div class="mac-header tab-header">
+                <span class="mac-dot close"></span>
+                <span class="mac-dot min"></span>
+                <span class="mac-dot max"></span>
+                <div class="tabs">
+                  <button id="tab-stdout" class="tab-btn active">Terminal (STDOUT)</button>
+                  <button id="tab-stderr" class="tab-btn">Diagnostic Logs (STDERR)</button>
+                  <button id="tab-tac" class="tab-btn">Intermediate Code (TAC)</button>
+                  <button id="tab-opt" class="tab-btn">Optimized TAC</button>
+                </div>
+              </div>
+              
+              <div class="tab-contents">
+                <div id="stdout" class="out active"></div>
+                <div id="stderr" class="out"></div>
+                <div id="tac" class="out"></div>
+                <div id="opt" class="out"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>
