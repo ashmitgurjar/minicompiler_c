@@ -1,0 +1,202 @@
+#include "print.hpp"
+
+#include <ostream>
+#include <string>
+
+namespace minic {
+namespace {
+
+struct Indent {
+  int n = 0;
+  void inc() { n += 2; }
+  void dec() { n -= 2; }
+  void pad(std::ostream& os) const { os << std::string(static_cast<size_t>(n), ' '); }
+};
+
+const char* typeName(TypeKind type) {
+  switch (type) {
+    case TypeKind::Int: return "int";
+    case TypeKind::Float: return "float";
+    case TypeKind::Bool: return "bool";
+    case TypeKind::String: return "string";
+    case TypeKind::Error: return "error";
+  }
+  return "unknown";
+}
+
+const char* binOpName(BinOp op) {
+  switch (op) {
+    case BinOp::Add: return "+";
+    case BinOp::Sub: return "-";
+    case BinOp::Mul: return "*";
+    case BinOp::Div: return "/";
+    case BinOp::Eq: return "==";
+    case BinOp::Ne: return "!=";
+    case BinOp::Lt: return "<";
+    case BinOp::Le: return "<=";
+    case BinOp::Gt: return ">";
+    case BinOp::Ge: return ">=";
+    case BinOp::And: return "&&";
+    case BinOp::Or: return "||";
+  }
+  return "?";
+}
+
+const char* unaryOpName(UnaryOp op) {
+  switch (op) {
+    case UnaryOp::Neg: return "-";
+    case UnaryOp::Not: return "!";
+  }
+  return "?";
+}
+
+void printExpr(std::ostream& os, const Expr& e, Indent in);
+void printStmt(std::ostream& os, const Stmt& s, Indent in);
+
+void printExpr(std::ostream& os, const Expr& e, Indent in) {
+  if (auto* i = dynamic_cast<const IntLiteral*>(&e)) {
+    in.pad(os);
+    os << "IntLiteral(" << i->value << ")\n";
+    return;
+  }
+  if (auto* f = dynamic_cast<const FloatLiteral*>(&e)) {
+    in.pad(os);
+    os << "FloatLiteral(" << f->value << ")\n";
+    return;
+  }
+  if (auto* b = dynamic_cast<const BoolLiteral*>(&e)) {
+    in.pad(os);
+    os << "BoolLiteral(" << (b->value ? "true" : "false") << ")\n";
+    return;
+  }
+  if (auto* s = dynamic_cast<const StringLiteral*>(&e)) {
+    in.pad(os);
+    os << "StringLiteral(\"" << s->value << "\")\n";
+    return;
+  }
+  if (auto* v = dynamic_cast<const VarRef*>(&e)) {
+    in.pad(os);
+    os << "VarRef(" << v->name << ")\n";
+    return;
+  }
+  if (auto* u = dynamic_cast<const UnaryExpr*>(&e)) {
+    in.pad(os);
+    os << "UnaryExpr(" << unaryOpName(u->op) << ")\n";
+    in.inc();
+    printExpr(os, *u->expr, in);
+    in.dec();
+    return;
+  }
+  if (auto* b = dynamic_cast<const BinaryExpr*>(&e)) {
+    in.pad(os);
+    os << "BinaryExpr(" << binOpName(b->op) << ")\n";
+    in.inc();
+    in.pad(os);
+    os << "lhs:\n";
+    in.inc();
+    printExpr(os, *b->lhs, in);
+    in.dec();
+    in.pad(os);
+    os << "rhs:\n";
+    in.inc();
+    printExpr(os, *b->rhs, in);
+    in.dec();
+    in.dec();
+    return;
+  }
+  in.pad(os);
+  os << "Expr(?)\n";
+}
+
+void printStmt(std::ostream& os, const Stmt& s, Indent in) {
+  if (auto* b = dynamic_cast<const Block*>(&s)) {
+    in.pad(os);
+    os << "Block\n";
+    in.inc();
+    for (const auto& st : b->stmts) printStmt(os, *st, in);
+    return;
+  }
+  if (auto* d = dynamic_cast<const Decl*>(&s)) {
+    in.pad(os);
+    os << "Decl(" << typeName(d->type) << " " << d->name << ")\n";
+    if (d->init) {
+      in.inc();
+      in.pad(os);
+      os << "init:\n";
+      in.inc();
+      printExpr(os, *d->init, in);
+      in.dec();
+      in.dec();
+    }
+    return;
+  }
+  if (auto* a = dynamic_cast<const Assign*>(&s)) {
+    in.pad(os);
+    os << "Assign(" << a->name << ")\n";
+    in.inc();
+    printExpr(os, *a->value, in);
+    return;
+  }
+  if (auto* iff = dynamic_cast<const If*>(&s)) {
+    in.pad(os);
+    os << "If\n";
+    in.inc();
+    in.pad(os);
+    os << "cond:\n";
+    in.inc();
+    printExpr(os, *iff->cond, in);
+    in.dec();
+    in.pad(os);
+    os << "then:\n";
+    in.inc();
+    printStmt(os, *iff->thenStmt, in);
+    in.dec();
+    if (iff->elseStmt) {
+      in.pad(os);
+      os << "else:\n";
+      in.inc();
+      printStmt(os, *iff->elseStmt, in);
+      in.dec();
+    }
+    in.dec();
+    return;
+  }
+  if (auto* w = dynamic_cast<const While*>(&s)) {
+    in.pad(os);
+    os << "While\n";
+    in.inc();
+    in.pad(os);
+    os << "cond:\n";
+    in.inc();
+    printExpr(os, *w->cond, in);
+    in.dec();
+    in.pad(os);
+    os << "body:\n";
+    in.inc();
+    printStmt(os, *w->body, in);
+    in.dec();
+    in.dec();
+    return;
+  }
+  if (auto* p = dynamic_cast<const Print*>(&s)) {
+    in.pad(os);
+    os << "Print\n";
+    in.inc();
+    printExpr(os, *p->expr, in);
+    in.dec();
+    return;
+  }
+  in.pad(os);
+  os << "Stmt(?)\n";
+}
+
+} // namespace
+
+void printAST(std::ostream& os, const Program& p) {
+  Indent in;
+  os << "Program\n";
+  in.inc();
+  for (const auto& s : p.stmts) printStmt(os, *s, in);
+}
+
+} // namespace minic
